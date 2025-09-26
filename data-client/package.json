@@ -17,15 +17,13 @@
     "picocolors": "^1.0.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "sqlite": "^5.1.1",
-    "sqlite3": "^5.1.7",
+    "thirdweb": "^5.108.3",
     "webflow-api": "^3.1.0"
   },
   "devDependencies": {
     "@types/node": "^20.11.16",
     "@types/react": "^18.2.55",
     "@types/react-dom": "^18.2.19",
-    "@types/sqlite3": "^3.1.11",
     "eslint": "^8.56.0",
     "eslint-config-next": "^14.1.0",
     "postcss": "^8.4.35",

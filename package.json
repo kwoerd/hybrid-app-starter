@@ -11,10 +11,15 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "concurrently": "^9.1.0"
+    "concurrently": "^9.1.0",
+    "thirdweb": "^5.108.3"
   },
   "packageManager": "npm@10.8.1",
   "devDependencies": {
+    "@webflow/data-types": "^1.0.1",
+    "@webflow/designer-extension-typings": "^2.0.23",
+    "@webflow/react": "^1.0.1",
+    "@webflow/webflow-cli": "^1.8.44",
     "turbo": "^2.3.0"
   }
 }

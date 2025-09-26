@@ -24,7 +24,9 @@
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.28.0",
-    "react-syntax-highlighter": "^15.6.1"
+    "react-syntax-highlighter": "^15.6.1",
+    "webflow-api": "^3.2.0",
+    "thirdweb": "^5.108.3"
   },
   "devDependencies": {
     "@eslint/js": "^9.9.0",

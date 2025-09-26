@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "thirdweb": {
+      "command": "npx",
+      "args": ["@thirdweb-dev/mcp-server"],
+      "env": {
+        "TW_SECRET_KEY": "your_thirdweb_secret_key_here"
+      }
+    }
+  }
+}
