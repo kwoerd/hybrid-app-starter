@@ -1,114 +1,105 @@
-# Hybrid App Starter
+# Retinal Delights NFT Marketplace
 
-A starter project for creating a Webflow Hybrid App that demonstrates OAuth authentication from the Webflow UI and basic Data and Designer API interactions. This project provides a simple example of how to:
+A Webflow Designer Extension for displaying and managing NFT collections with thirdweb integration. This project provides a simple NFT marketplace interface that can be embedded directly into Webflow sites.
 
-- [Set up a Webflow Data Client server](https://developers.webflow.com/v2.0.0/data/docs/getting-started-data-clients)
-- [Set up a Webflow Designer Extension frontend](https://developers.webflow.com/v2.0.0/designer/docs/getting-started-designer-extensions)
-- [Authenticate from the Designer Extension](https://developers.webflow.com/v2.0.0/data/docs/authenticating-users-with-id-tokens)
-- [Make Data API calls](https://developers.webflow.com/designer/reference/introduction)
-- [Make Designer API calls](https://developers.webflow.com/designer/reference/introduction)
+## 🚀 Features
 
-## 🚀 Quick start
-
-1. Create a Webflow site if you haven't already at [webflow.com](https://webflow.com)
-2. Register your app in [your Workspace](https://developers.webflow.com/v2.0.0/data/docs/register-an-app) Be sure to add a redirect URI to `localhost:3000/api/auth/callback` and the required scopes:
-   
-   - `authorized_user: read`
-   - `sites:read` `sites:write`
-   - `custom_code:read` `custom_code:write`
-
-3. Clone this repository and install the dependencies:
-
-   ```bash
-   npm install
-   # or
-   yarn install
-   ```
-
-4. Install the Webflow CLI:
-
-   ```bash
-   npm install -g @webflow/cli
-   # or
-   yarn global add @webflow/cli
-   ```
-
-5. Navigate to the `/data-client` folder and create a `.env` file by copying `.env.example`. Fill in your app credentials, which can be found in your Webflow Dashboard under Integrations > App Development > Your App Details:
-
-   ```env
-   WEBFLOW_CLIENT_ID=xxx
-   WEBFLOW_CLIENT_SECRET=xxx
-   DESIGNER_EXTENSION_URI=xxx
-   PORT=3000
-   ```
-
-6. Run the Data Client and Designer Extension together as a Hybrid App. The run command will install the dependencies and start the server and the designer extension:
-
-   ```bash
-   npm run dev
-   # or
-   yarn dev
-   ```
-
-7. Install your app by navigating to `http://localhost:3000` in your web browser. This will redirect you to the Webflow Authorization page where you can authorize the app for your workspace.
-
-8. Open your Webflow Site. Open the Apps panel and click on your App. When the panel opens click the "Launch Development App" button
-
-9. Click the Authorize button to authenticate your App and start using the Data and Designer APIs
+- **NFT Collection Display** - Show your NFT collection with metadata and images
+- **Wallet Connection** - Connect user wallets using thirdweb
+- **Webflow Integration** - Embed directly into Webflow sites via Designer Extension
+- **thirdweb v5** - Modern Web3 SDK for blockchain interactions
+- **TypeScript** - Full type safety throughout the application
 
 ## 🛠️ Tech Stack
 
-- Data Client:
-  - **[Webflow SDK](https://github.com/webflow/js-webflow-api)** - Official Webflow API client
-- Designer Extension:
-  - **[Webflow Designer API](https://www.npmjs.com/package/@webflow/designer-extension-typings?activeTab=readme)** - Official Webflow Designer API client
+- **Designer Extension:**
+  - **[Webflow Designer API](https://www.npmjs.com/package/@webflow/designer-extension-typings)** - Official Webflow Designer API client
   - **[Vite](https://vitejs.dev/)** - Build tool for modern web development
-  - **[JWT-Decode](https://github.com/auth0/jwt-decode)** - Decode JWT tokens
   - **[React](https://reactjs.org/)** - JavaScript library for building user interfaces
+  - **[thirdweb v5](https://thirdweb.com/)** - Web3 SDK for blockchain interactions
+  - **[TypeScript](https://www.typescriptlang.org/)** - Type safety and developer experience
 
-## 📝 Important Notes
+## 🚀 Quick Start
 
-- This is a **development-only** example and should not be used in production
-- The database is cleared when the server stops (see `cleanup` function)
-- Access tokens are stored unencrypted - in production, you should:
-  - Encrypt sensitive data
-  - Use a proper database
-  - Implement token refresh
-  - Add error handling
-  - Add user sessions
+1. **Install Dependencies:**
+   ```bash
+   npm install
+   ```
 
-## 🔍 Project Structure
+2. **Install Webflow CLI:**
+   ```bash
+   npm install -g @webflow/cli
+   ```
+
+3. **Set up Environment Variables:**
+   Create a `.env.local` file in the `designer-extension` directory:
+   ```env
+   THIRDWEB_CLIENT_ID=your_thirdweb_client_id_here
+   ```
+
+4. **Start Development:**
+   ```bash
+   npm run dev
+   ```
+
+5. **Bundle for Webflow:**
+   ```bash
+   cd designer-extension
+   webflow extension bundle
+   ```
+
+6. **Upload to Webflow:**
+   - Go to your Webflow app dashboard
+   - Upload the generated zip file
+   - Install the extension in your Webflow site
+
+## 📁 Project Structure
 
 ```
 .
-├── data-client/                      # Backend server
-│   ├── app/
-│   │   ├── api/                     # API Routes
-│   │   │   ├── auth/               # Auth endpoints
-│   │   │   └── custom-code/        # Custom code endpoints
-│   │   ├── lib/                    # Server utilities
-│   │   │   ├── controllers/        # Logic for handling requests and responses using the Webflow SDK
-│   │   └── db/                     # Database
-│   ├── .env.example                # Environment template
-│   └── package.json
-│
-├── designer-extension/              # Frontend app
+├── designer-extension/              # Main Designer Extension app
 │   ├── src/
 │   │   ├── components/             # React components
 │   │   ├── hooks/                  # Custom hooks
 │   │   ├── services/               # API services/logic
 │   │   ├── types/                  # TypeScript types
 │   │   └── App.tsx                 # Main app component
-│   ├── .env.development            # Dev environment variables
+│   ├── webflow.json               # Webflow extension config
 │   └── package.json
-│└── package.json                     # Root package.json
+├── docs/                          # NFT metadata and URLs
+│   ├── combined_metadata.json     # NFT metadata
+│   └── nft_urls.json             # NFT image URLs
+├── .cursor/                       # Cursor AI configuration
+│   └── mcp.json                   # thirdweb MCP setup
+└── package.json                   # Root package.json
 ```
 
-## 📚 Additional Resources
+## 🎯 NFT Collection Setup
 
-- [OAuth 2.0 Implementation Guide](https://developers.webflow.com/v2.0.0/data/docs/oauth)
-- [Hybrid App Authentication](https://developers.webflow.com/v2.0.0/data/docs/authenticating-users-with-id-tokens)
-- [Available API Scopes](https://developers.webflow.com/v2.0.0/data/reference/scopes)
+Your NFT collection data is stored in the `docs/` directory:
+- `combined_metadata.json` - Contains all NFT metadata
+- `nft_urls.json` - Contains IPFS URLs for NFT images
+
+The extension will automatically load and display this data.
+
+## 🔧 Configuration
+
+### thirdweb Setup
+1. Get your Client ID from [thirdweb dashboard](https://thirdweb.com/dashboard)
+2. Add it to your `.env.local` file
+3. Configure MCP in `.cursor/mcp.json` for AI assistance
+
+### Webflow Setup
+1. Create a Webflow app in your workspace
+2. Set up the Designer Extension
+3. Upload the bundled zip file
+4. Install in your Webflow site
+
+## 📚 Resources
+
+- [Webflow Designer Extensions](https://developers.webflow.com/designer/docs/getting-started-designer-extensions)
+- [thirdweb Documentation](https://portal.thirdweb.com/)
+- [thirdweb MCP Server](https://github.com/thirdweb-dev/mcp-server)
 
 ## 🤝 Contributing
 

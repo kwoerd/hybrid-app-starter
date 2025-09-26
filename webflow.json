@@ -5,5 +5,13 @@
       "lastPrompted": 1758919248523,
       "version": "1.8.44"
     }
+  },
+  "library": {
+    "components": [
+      "**/*.webflow.@(js|jsx|mjs|ts|tsx)"
+    ],
+    "name": "retinal-delights",
+    "description": "nft-marketplace",
+    "id": "retinal-delights"
   }
 }
