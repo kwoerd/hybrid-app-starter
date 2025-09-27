@@ -1,65 +1,22 @@
-import React from 'react';
-import { cn } from '../../lib/utils';
+import * as React from "react"
 
-export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
-  variant?: 'default' | 'success' | 'warning' | 'error';
-  label?: string;
-  helperText?: string;
-  error?: string;
-}
+import { cn } from "../lib/utils"
 
-const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ className, variant = 'default', label, helperText, error, type = 'text', ...props }, ref) => {
-    const baseClasses = "flex h-9 w-full rounded-input border border-border-primary bg-bg-primary px-3 py-1 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-200";
-    
-    const variants = {
-      default: "focus:border-brand-pink focus:ring-brand-pink",
-      success: "border-success focus:border-success focus:ring-success",
-      warning: "border-warning focus:border-warning focus:ring-warning",
-      error: "border-error focus:border-error focus:ring-error",
-    };
+export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {}
 
-    const inputElement = (
-      <input
-        type={type}
-        className={cn(
-          baseClasses,
-          variants[variant],
-          error && "border-error focus:border-error focus:ring-error",
-          className
-        )}
-        ref={ref}
-        {...props}
-      />
-    );
+const Input = React.forwardRef<HTMLInputElement, InputProps>(({ className, type, ...props }, ref) => {
+  return (
+    <input
+      type={type}
+      className={cn(
+        "flex h-10 w-full rounded border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 text-blue-500",
+        className,
+      )}
+      ref={ref}
+      {...props}
+    />
+  )
+})
+Input.displayName = "Input"
 
-    if (label || helperText || error) {
-      return (
-        <div className="space-y-1">
-          {label && (
-            <label className="text-sm font-medium text-text-primary">
-              {label}
-            </label>
-          )}
-          {inputElement}
-          {error && (
-            <p className="text-xs text-error">
-              {error}
-            </p>
-          )}
-          {helperText && !error && (
-            <p className="text-xs text-text-muted">
-              {helperText}
-            </p>
-          )}
-        </div>
-      );
-    }
-
-    return inputElement;
-  }
-);
-
-Input.displayName = "Input";
-
-export { Input };
+export { Input }

@@ -130,35 +130,34 @@ export const NFTGrid: React.FC<NFTGridProps> = ({
       {/* Header */}
       <div className="mb-6">
         <div className="mb-4">
-          <h2 className="text-lg font-medium text-text-primary">NFT Collection</h2>
-          <div className="mt-1">
-            <div className="text-xs font-medium text-success">
-              {activeCount} Active
-            </div>
-            <div className="text-xs font-medium text-info">
-              {soldCount} Sold
-            </div>
+          <h2 className="text-lg font-medium" style={{ color: "#fffbeb" }}>NFT Collection</h2>
+          <div className="text-sm font-medium text-brand-pink mt-1">
+            {activeCount} Active • {soldCount} Sold
           </div>
         </div>
         
         {/* View Toggle */}
-        <div className="flex bg-bg-secondary rounded p-1 w-fit">
-          <Button
-            variant={activeView === "forSale" ? "primary" : "ghost"}
-            size="sm"
+        <div className="flex items-center space-x-2">
+          <button
             onClick={() => onViewChange("forSale")}
-            className="px-3 py-1 text-sm"
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              activeView === 'forSale'
+                ? 'bg-brand-pink text-white'
+                : 'bg-neutral-700 text-neutral-300 hover:bg-neutral-600'
+            }`}
           >
             Live
-          </Button>
-          <Button
-            variant={activeView === "sold" ? "primary" : "ghost"}
-            size="sm"
+          </button>
+          <button
             onClick={() => onViewChange("sold")}
-            className="px-3 py-1 text-sm"
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              activeView === 'sold'
+                ? 'bg-brand-pink text-white'
+                : 'bg-neutral-700 text-neutral-300 hover:bg-neutral-600'
+            }`}
           >
             Sold
-          </Button>
+          </button>
         </div>
       </div>
 

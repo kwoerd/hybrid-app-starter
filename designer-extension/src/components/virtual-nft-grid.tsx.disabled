@@ -1,0 +1,138 @@
+"use client"
+
+import { useState, useMemo, useRef, useEffect } from 'react';
+import { Grid } from 'react-window';
+import NFTCard from './nft-card';
+import LoadingSpinner from './loading-spinner';
+
+interface VirtualNFTGridProps {
+  nfts: any[];
+  isLoading: boolean;
+  itemsPerPage: number;
+  onBidAmountChange: (id: string, value: string) => void;
+  onPlaceBid: (nft: any) => void;
+  onBuyNow: (nft: any) => void;
+  bidAmounts: { [id: string]: string };
+  isProcessingBuyNow: { [id: string]: boolean };
+  activeView: string;
+}
+
+export default function VirtualNFTGrid({
+  nfts,
+  isLoading,
+  itemsPerPage,
+  onBidAmountChange,
+  onPlaceBid,
+  onBuyNow,
+  bidAmounts,
+  isProcessingBuyNow,
+  activeView
+}: VirtualNFTGridProps) {
+  const [containerSize, setContainerSize] = useState({ width: 0, height: 600 });
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Calculate grid dimensions
+  const columnCount = useMemo(() => {
+    if (containerSize.width < 640) return 1; // sm
+    if (containerSize.width < 1024) return 2; // lg
+    if (containerSize.width < 1280) return 3; // xl
+    if (containerSize.width < 1536) return 4; // 2xl
+    return 5; // 3xl+
+  }, [containerSize.width]);
+
+  const rowCount = Math.ceil(nfts.length / columnCount);
+  const itemHeight = 400; // Fixed height for each NFT card
+
+  // Update container size on resize
+  useEffect(() => {
+    const updateSize = () => {
+      if (containerRef.current) {
+        setContainerSize({
+          width: containerRef.current.offsetWidth,
+          height: containerRef.current.offsetHeight
+        });
+      }
+    };
+
+    updateSize();
+    window.addEventListener('resize', updateSize);
+    return () => window.removeEventListener('resize', updateSize);
+  }, []);
+
+  // Cell renderer for virtual grid
+  const Cell = ({ columnIndex, rowIndex, style }: any) => {
+    const index = rowIndex * columnCount + columnIndex;
+    const nft = nfts[index];
+
+    if (!nft) {
+      return <div style={style} />;
+    }
+
+    return (
+      <div style={style} className="p-3">
+        <NFTCard
+          key={nft.id}
+          image={nft.image}
+          name={nft.name}
+          rank={nft.rank}
+          rarity={nft.rarity}
+          rarityPercent={nft.rarityPercent}
+          startingPrice={nft.bidPrice}
+          bidPrice={nft.bidPrice}
+          currentBid={nft.currentBid}
+          buyNow={nft.buyNow}
+          tokenId={nft.tokenId}
+          auctionEnd={nft.auctionEnd}
+          numBids={nft.numBids ?? 0}
+          activeView={activeView}
+          bidAmount={bidAmounts[nft.id]}
+          isProcessingBuyNow={isProcessingBuyNow[nft.id]}
+          isForSale={nft.isForSale}
+          auctionId={nft.auctionId?.toString()}
+          onBidAmountChange={(id: string, value: string) => onBidAmountChange(nft.id, value)}
+          onPlaceBid={() => onPlaceBid(nft)}
+          onBuyNow={() => onBuyNow(nft)}
+          onBid={(bidAmount: string) => onPlaceBid(nft)}
+          buyNowValue={Number(nft.priceWei) / 1e18}
+          buyNowWei={nft.priceWei?.toString()}
+          minimumBidWei={nft.bidPriceWei?.toString()}
+        />
+      </div>
+    );
+  };
+
+  if (isLoading) {
+    return (
+      <div className="w-full">
+        <LoadingSpinner 
+          size="lg" 
+          text="Loading NFT collection..." 
+          className="min-h-[400px]"
+        />
+      </div>
+    );
+  }
+
+  if (nfts.length === 0) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-gray-400">No NFTs found</p>
+      </div>
+    );
+  }
+
+  return (
+    <div ref={containerRef} className="w-full h-[600px]">
+      <Grid
+        columnCount={columnCount}
+        columnWidth={containerSize.width / columnCount}
+        height={containerSize.height}
+        rowCount={rowCount}
+        rowHeight={itemHeight}
+        width={containerSize.width}
+      >
+        {Cell}
+      </Grid>
+    </div>
+  );
+}

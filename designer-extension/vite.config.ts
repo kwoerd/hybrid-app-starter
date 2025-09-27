@@ -85,7 +85,7 @@ const buildFlagQuery = (featureFlags?: Record<string, boolean>): string =>
         .map(([key, value]) => `&ff_${value ? 'on' : 'off'}=${key}`)
         .join('');
 
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   server: {
     port: 1337,
     watch: {
@@ -94,11 +94,12 @@ export default defineConfig({
   },
   plugins: [
     react(),
-    wfDesignerExtensionPlugin(['../nextjs-app/app/api/**/*.ts']),
+    // Only use Webflow extension plugin in production
+    ...(mode === 'production' ? [wfDesignerExtensionPlugin(['../nextjs-app/app/api/**/*.ts'])] : []),
   ],
   root: './',
   base: './',
   build: {
     outDir: 'dist',
   },
-});
+}));

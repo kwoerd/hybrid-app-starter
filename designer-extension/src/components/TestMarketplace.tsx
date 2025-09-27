@@ -1,68 +1,71 @@
-import React, { useState, useEffect } from 'react';
-import { ThirdwebProvider } from 'thirdweb/react';
-import { NFTMarketplace } from './marketplace/NFTMarketplace';
-import { loadNFTData, NFTData } from '../lib/nftDataLoader';
-import { client, supportedChains } from '../lib/thirdweb';
+"use client"
+import React, { useState, useCallback } from "react";
+import { ThirdwebProvider } from "thirdweb/react";
+import NFTGrid from "./nft-grid";
+// import CollectionStats from "./collection-stats"; // Removed - not needed
+import Footer from "./footer";
+import Navigation from "./navigation";
+import NFTSidebar from "./nft-sidebar";
+// import { NotificationSystem, useNotifications } from "./NotificationSystem"; // Removed - not needed
 
-/**
- * Test component for development - bypasses Webflow extension requirements
- */
-export const TestMarketplace: React.FC = () => {
-  const [nftData, setNftData] = useState<NFTData[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+export const NFTMarketplaceMain: React.FC = () => {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [searchMode, setSearchMode] = useState<"exact" | "contains">("contains");
+  const [selectedFilters, setSelectedFilters] = useState({});
+  const [filteredCount, setFilteredCount] = useState(0);
+  const [traitCounts, setTraitCounts] = useState<Record<string, Record<string, number>>>({});
 
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        setIsLoading(true);
-        const data = await loadNFTData();
-        setNftData(data.nfts);
-        setError(data.error);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load NFT data');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadData();
+  const handleFilteredCountChange = useCallback((count: number) => {
+    setFilteredCount(count);
   }, []);
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-        <div className="text-white text-xl">Loading NFT data...</div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-        <div className="text-red-400 text-xl">Error: {error}</div>
-      </div>
-    );
-  }
+  const handleTraitCountsChange = useCallback((counts: Record<string, Record<string, number>>) => {
+    setTraitCounts(counts);
+  }, []);
 
   return (
     <ThirdwebProvider>
-      <div className="min-h-screen bg-gray-900">
-        <div className="container mx-auto px-4 py-8">
-          <h1 className="text-4xl font-bold text-white mb-8 text-center">
-            Retinal Delights NFT Marketplace
-          </h1>
-          <p className="text-gray-400 text-center mb-8">
-            Development Test - {nftData.length} NFTs loaded
-          </p>
-          <NFTMarketplace 
-            nfts={nftData}
-            onBid={() => console.log('Bid clicked')}
-            onBuyNow={() => console.log('Buy now clicked')}
-            onFavorite={() => console.log('Favorite clicked')}
-          />
-        </div>
-      </div>
+      <main className="min-h-screen bg-background text-foreground pt-24 sm:pt-28">
+        <Navigation activePage="nfts" />
+
+        <section className="w-full mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+          <div className="mb-6">
+            <h1 id="collection-heading" className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-center mb-1">
+              <span style={{ color: "#fffbeb" }}>SATO</span><span className="text-brand-pink">SHE</span><span style={{ color: "#fffbeb" }}> SLUGGERS</span>
+            </h1>
+            <p className="text-lg sm:text-2xl text-neutral-400 text-center max-w-2xl mx-auto tracking-wider">
+              A RETINAL DELIGHTS NFT MARKETPLACE
+            </p>
+          </div>
+
+          {/* CollectionStats removed - not needed */}
+
+          <div className="mt-6 sm:mt-8 flex flex-col lg:flex-row gap-4 lg:gap-6" suppressHydrationWarning>
+            <div className="lg:sticky lg:top-[76px] lg:self-start z-10 w-full lg:w-64 xl:w-72 2xl:w-80">
+              <NFTSidebar
+                searchTerm={searchTerm}
+                setSearchTerm={setSearchTerm}
+                searchMode={searchMode}
+                setSearchMode={setSearchMode}
+                selectedFilters={selectedFilters}
+                setSelectedFilters={setSelectedFilters}
+                traitCounts={traitCounts}
+              />
+            </div>
+            <div className="flex-1 min-w-0">
+              <NFTGrid
+                searchTerm={searchTerm}
+                searchMode={searchMode}
+                selectedFilters={selectedFilters}
+                onFilteredCountChange={handleFilteredCountChange}
+                onTraitCountsChange={handleTraitCountsChange}
+              />
+            </div>
+          </div>
+        </section>
+
+        <Footer />
+      </main>
     </ThirdwebProvider>
   );
 };

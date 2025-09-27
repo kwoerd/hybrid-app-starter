@@ -1,125 +1,69 @@
-import { type ClassValue, clsx } from "clsx";
-import { twMerge } from "tailwind-merge";
+import { clsx, type ClassValue } from "clsx"
+import { twMerge } from "tailwind-merge"
 
 export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
+  return twMerge(clsx(inputs))
 }
 
-export function formatPrice(price: string | number | bigint): string {
-  if (!price || price === "0") {
-    return "--";
-  }
+// Format ETH price without trailing zeros
+export function formatETHPrice(price: string | number | bigint): string {
+  if (!price || price === "0") return "0";
   
-  if (typeof price === "bigint" || (typeof price === "string" && /^\d{12,}$/.test(price))) {
-    try {
-      const eth = Number(BigInt(price)) / 1e18;
-      if (eth > 10000) {
-        return "--";
-      }
-      return eth.toLocaleString(undefined, { maximumFractionDigits: 6 }) + " ETH";
-    } catch {
-      return "--";
+  try {
+    let ethValue: number;
+    
+    if (typeof price === "bigint" || (typeof price === "string" && /^\d{12,}$/.test(price))) {
+      // Convert from wei
+      ethValue = Number(BigInt(price)) / 1e18;
+    } else {
+      ethValue = Number(price);
     }
+    
+    if (isNaN(ethValue) || ethValue < 0) return "0";
+    
+    // Remove trailing zeros and unnecessary decimal point
+    return parseFloat(ethValue.toString()).toString();
+  } catch {
+    return "0";
   }
-  
-  if (typeof price === "number" && price < 1e6) {
-    return price + " ETH";
-  }
-  
-  if (typeof price === "string" && /^\d*\.?\d+$/.test(price)) {
-    return price + " ETH";
-  }
-  
-  return "--";
 }
 
-export function formatCountdown(auctionEnd: string | number | bigint): string {
-  if (!auctionEnd) return "Auction ended";
+// Format price for display
+export function formatPrice(price: string | number): string {
+  const numPrice = typeof price === "string" ? parseFloat(price) : price;
+  if (isNaN(numPrice)) return "0.00";
   
+  if (numPrice >= 1) {
+    return numPrice.toFixed(2);
+  } else if (numPrice >= 0.01) {
+    return numPrice.toFixed(4);
+  } else {
+    return numPrice.toFixed(6);
+  }
+}
+
+// Format countdown timer
+export function formatCountdown(endTime: number): string {
   const now = Date.now();
-  const end = Number(auctionEnd) * 1000;
-  const timeLeft = end - now;
+  const timeLeft = endTime - now;
   
-  if (timeLeft <= 0) return "Auction ended";
+  if (timeLeft <= 0) return "Ended";
   
-  const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
-  const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+  const hours = Math.floor(timeLeft / (1000 * 60 * 60));
   const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
   
-  if (days > 0) {
-    return `${days}d ${hours}h ${minutes}m remaining`;
+  if (hours > 24) {
+    const days = Math.floor(hours / 24);
+    return `${days}d ${hours % 24}h`;
   } else if (hours > 0) {
-    return `${hours}h ${minutes}m remaining`;
+    return `${hours}h ${minutes}m`;
   } else {
-    return `${minutes}m remaining`;
+    return `${minutes}m`;
   }
 }
 
-export function validateNumericInput(value: string, tokenId: string): {
-  isValid: boolean;
-  formattedValue: string;
-} {
-  // Remove any non-numeric characters except decimal point
-  const cleaned = value.replace(/[^0-9.]/g, '');
-  
-  // Ensure only one decimal point
-  const parts = cleaned.split('.');
-  if (parts.length > 2) {
-    return {
-      isValid: false,
-      formattedValue: parts[0] + '.' + parts.slice(1).join('')
-    };
-  }
-  
-  // Limit to 5 decimal places
-  if (parts[1] && parts[1].length > 5) {
-    return {
-      isValid: false,
-      formattedValue: parts[0] + '.' + parts[1].substring(0, 5)
-    };
-  }
-  
-  // Check if it's a valid number
-  const num = parseFloat(cleaned);
-  if (isNaN(num) || num < 0) {
-    return {
-      isValid: false,
-      formattedValue: cleaned
-    };
-  }
-  
-  return {
-    isValid: true,
-    formattedValue: cleaned
-  };
-}
-
-export function getAttribute(meta: any, traitType: string): string | undefined {
-  return meta?.attributes?.find((attr: any) => attr.trait_type === traitType)?.value;
-}
-
-export function truncateAddress(address: string, start = 6, end = 4): string {
-  if (!address) return '';
-  return `${address.slice(0, start)}...${address.slice(-end)}`;
-}
-
-export function formatDate(timestamp: string | number | bigint): string {
-  if (!timestamp) return "N/A";
-  const date = new Date(Number(timestamp) * 1000);
-  return date.toLocaleDateString("en-US", {
-    month: "2-digit",
-    day: "2-digit",
-    year: "numeric"
-  });
-}
-
-export function formatTime(timestamp: string | number | bigint): string {
-  if (!timestamp) return "N/A";
-  const date = new Date(Number(timestamp) * 1000);
-  return date.toLocaleTimeString("en-US", {
-    hour: "numeric",
-    minute: "2-digit",
-    hour12: true,
-    timeZoneName: "short"
-  });
+// Validate numeric input
+export function validateNumericInput(value: string): boolean {
+  const num = parseFloat(value);
+  return !isNaN(num) && num >= 0;
 }

@@ -1,6 +1,5 @@
-import { createTheme } from "@mui/material";
-
-const theme = createTheme({
+// Simple theme object - no MUI needed
+const theme = {
   typography: {
     fontSize: 9,
     body1: {
@@ -8,6 +7,6 @@ const theme = createTheme({
       lineHeight: 1.5,
     },
   },
-});
+};
 
 export { theme };
