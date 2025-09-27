@@ -13,6 +13,11 @@ import { theme } from "./components/theme";
 import "./App.css";
 import { ElementsDashboard } from "./components/Elements/ElementsDashboard";
 
+// Import NFT Marketplace components
+import { NFTMarketplace } from "./components/marketplace/NFTMarketplace";
+import { TestMarketplace } from "./components/TestMarketplace";
+import { loadNFTData, NFTData } from "./lib/nftDataLoader";
+
 /**
  * App.tsx serves as the main entry point and demonstrates:
  * 1. Authentication flow with Webflow's Designer and Data APIs
@@ -27,6 +32,11 @@ import { ElementsDashboard } from "./components/Elements/ElementsDashboard";
 // This is the main App Component. It handles the initial setup and rendering of the Dashboard.
 function AppContent() {
   const [hasClickedFetch, setHasClickedFetch] = useState(false);
+  const [nftData, setNftData] = useState<{ nfts: NFTData[]; isLoading: boolean; error?: string }>({
+    nfts: [],
+    isLoading: true,
+  });
+  const [favorites, setFavorites] = useState<Set<string>>(new Set());
   const { user, sessionToken, exchangeAndVerifyIdToken, logout } = useAuth();
   const { sites, isLoading, isError, error, fetchSites } = useSites(
     sessionToken,
@@ -35,6 +45,25 @@ function AppContent() {
 
   // Move ref outside useEffect to persist across renders
   const hasCheckedToken = useRef(false);
+
+  // Load NFT data on component mount
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const data = await loadNFTData();
+        setNftData(data);
+      } catch (error) {
+        console.error('Failed to load NFT data:', error);
+        setNftData({
+          nfts: [],
+          isLoading: false,
+          error: error instanceof Error ? error.message : 'Failed to load NFT data'
+        });
+      }
+    };
+
+    loadData();
+  }, []);
 
   useEffect(() => {
     // Set the extension size to large
@@ -76,6 +105,31 @@ function AppContent() {
     fetchSites();
   };
 
+  // NFT Marketplace handlers
+  const handleBid = async (nft: NFTData, bidAmount: string) => {
+    console.log('Bid placed:', { nft: nft.name, bidAmount });
+    // TODO: Implement actual bidding logic with thirdweb
+    alert(`Bid of ${bidAmount} ETH placed on ${nft.name}`);
+  };
+
+  const handleBuyNow = async (nft: NFTData) => {
+    console.log('Buy now clicked:', nft.name);
+    // TODO: Implement actual buy now logic with thirdweb
+    alert(`Buy now clicked for ${nft.name}`);
+  };
+
+  const handleFavorite = (tokenId: string) => {
+    setFavorites(prev => {
+      const newFavorites = new Set(prev);
+      if (newFavorites.has(tokenId)) {
+        newFavorites.delete(tokenId);
+      } else {
+        newFavorites.add(tokenId);
+      }
+      return newFavorites;
+    });
+  };
+
   // Render the app
   return (
     <BrowserRouter>
@@ -84,6 +138,21 @@ function AppContent() {
         <Routes>
           <Route
             path="/"
+            element={
+              // Show NFT Marketplace as the main interface
+              <NFTMarketplace
+                nfts={nftData.nfts}
+                isLoading={nftData.isLoading}
+                onBid={handleBid}
+                onBuyNow={handleBuyNow}
+                onFavorite={handleFavorite}
+                favorites={favorites}
+                className="p-6"
+              />
+            }
+          />
+          <Route
+            path="/dashboard"
             element={
               // If the user is authenticated, render the dashboard
               sessionToken ? (
@@ -111,7 +180,7 @@ function AppContent() {
                 <AuthScreen onAuth={() => {}} />
               )
             }
-          />{" "}
+          />
         </Routes>
       </Box>
       <DevTools logout={logout} setHasClickedFetch={setHasClickedFetch} />
@@ -120,6 +189,11 @@ function AppContent() {
 }
 
 function App() {
+  // For development, show the test marketplace
+  if (import.meta.env.DEV) {
+    return <TestMarketplace />;
+  }
+
   return (
     <ThemeProvider theme={theme}>
       <AppContent />

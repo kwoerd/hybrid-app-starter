@@ -1,0 +1,284 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Design System Colors - ONLY 2 SHADES MAX PER COLOR */
+    
+    /* Brand Colors */
+    --brand-pink: #FF0099;
+    --brand-pink-hover: #E6008A;
+    
+    /* Text Colors */
+    --text-primary: #fffbeb;
+    --text-secondary: #a3a3a3;
+    --text-muted: #737373;
+    
+    /* Background Colors */
+    --bg-primary: #171717;
+    --bg-secondary: #262626;
+    
+    /* Border Colors */
+    --border-primary: #404040;
+    --border-secondary: #525252;
+    
+    /* Status Colors - ONLY 2 SHADES EACH */
+    --success: #10B981;
+    --success-hover: #059669;
+    --warning: #F59E0B;
+    --warning-hover: #D97706;
+    --error: #EF4444;
+    --error-hover: #DC2626;
+    --info: #3B82F6;
+    --info-hover: #2563EB;
+    
+    /* Spacing Scale (8px base) */
+    --space-1: 0.25rem;   /* 4px */
+    --space-2: 0.5rem;    /* 8px */
+    --space-3: 0.75rem;   /* 12px */
+    --space-4: 1rem;      /* 16px */
+    --space-5: 1.25rem;   /* 20px */
+    --space-6: 1.5rem;    /* 24px */
+    --space-8: 2rem;      /* 32px */
+    --space-10: 2.5rem;   /* 40px */
+    --space-12: 3rem;     /* 48px */
+    --space-16: 4rem;     /* 64px */
+    --space-20: 5rem;     /* 80px */
+    --space-24: 6rem;     /* 96px */
+    
+    /* Border Radius Scale */
+    --radius-none: 0;
+    --radius-sm: 0.25rem;    /* 4px */
+    --radius-md: 0.5rem;     /* 8px */
+    --radius-lg: 0.75rem;    /* 12px */
+    --radius-xl: 1rem;       /* 16px */
+    --radius-full: 9999px;   /* Fully rounded */
+    
+    /* Component Radius */
+    --card-radius: 0.5rem;   /* 8px */
+    --button-radius: 0.25rem; /* 4px */
+    --input-radius: 0.25rem;  /* 4px */
+    --modal-radius: 0.75rem;  /* 12px */
+    
+    /* Transitions */
+    --transition: all 0.2s ease-out;
+    --transition-fast: all 0.1s ease-out;
+    --transition-slow: all 0.3s ease-out;
+    
+    /* Legacy shadcn variables (keep for compatibility) */
+    --background: 0 0% 100%;
+    --foreground: 0 0% 3.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 3.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 3.9%;
+    --primary: 0 0% 9%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 0 0% 96.1%;
+    --secondary-foreground: 0 0% 9%;
+    --muted: 0 0% 96.1%;
+    --muted-foreground: 0 0% 45.1%;
+    --accent: 0 0% 96.1%;
+    --accent-foreground: 0 0% 9%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 89.8%;
+    --input: 0 0% 89.8%;
+    --ring: 0 0% 3.9%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 0 0% 9%;
+    --foreground: 0 0% 98%;
+
+    --card: 0 0% 13%;
+    --card-foreground: 0 0% 98%;
+
+    --popover: 0 0% 9%;
+    --popover-foreground: 0 0% 98%;
+
+    --primary: 0 0% 98%;
+    --primary-foreground: 0 0% 9%;
+
+    --secondary: 0 0% 17%;
+    --secondary-foreground: 0 0% 98%;
+
+    --muted: 0 0% 17%;
+    --muted-foreground: 0 0% 63.9%;
+
+    --accent: 0 0% 17%;
+    --accent-foreground: 0 0% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 0 0% 20%;
+    --input: 0 0% 20%;
+    --ring: 0 0% 83.1%;
+    
+    /* Status colors for dark mode */
+    --success: 142 76% 36%;
+    --warning: 38 92% 50%;
+    --error: 0 84% 60%;
+    --info: 213 94% 68%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Text selection styling */
+::selection {
+  background-color: #FF0099;
+  color: white;
+}
+
+::-moz-selection {
+  background-color: #FF0099;
+  color: white;
+}
+
+.rounded-image {
+  border-radius: var(--radius);
+}
+
+/* Custom checkbox styling */
+input[type="checkbox"] {
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 0.25rem;
+  border: 1px solid hsl(var(--border));
+  background-color: hsl(var(--background));
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  position: relative;
+}
+
+input[type="checkbox"]:checked {
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: 70%;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white' width='24px' height='24px'%3E%3Cpath d='M0 0h24v24H0z' fill='none'/%3E%3Cpath d='M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z'/%3E%3C/svg%3E");
+}
+
+/* Animation for mobile menu */
+.animate-in {
+  animation-duration: 300ms;
+  animation-timing-function: ease-in-out;
+  animation-fill-mode: forwards;
+}
+
+.slide-in-from-top {
+  animation-name: slideInFromTop;
+}
+
+@keyframes slideInFromTop {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Add this at the end of the file */
+/* Enhanced input styling for bid fields */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+/* Shimmer effect for buttons */
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.animate-shimmer {
+  animation: shimmer 2s infinite;
+}
+
+/* Default spellcheck disabled for all inputs */
+input,
+textarea {
+  spellcheck: false;
+}
+
+/* Hide ThirdWeb branding in PayEmbed */
+[data-testid*="powered"],
+[class*="powered"],
+a[href*="thirdweb"],
+[aria-label*="thirdweb"],
+[title*="thirdweb"],
+[class*="thirdweb"] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  height: 0 !important;
+  width: 0 !important;
+  overflow: hidden !important;
+}
+
+/* Screen reader only text */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Custom scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #1a1a1a;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #fffbeb;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #f5f5dc;
+}
+
+::-webkit-scrollbar-corner {
+  background: #1a1a1a;
+}
+
+/* Firefox scrollbar styling */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #fffbeb #1a1a1a;
+}
