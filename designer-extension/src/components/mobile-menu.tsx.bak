@@ -6,7 +6,7 @@ import { Menu } from "lucide-react"
 import { Button } from "./ui/button"
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "./ui/sheet"
 import ConnectWalletButton from "./connect-wallet-button"
-import NotificationIcon from "./notification-icon"
+// import NotificationIcon from "./notification-icon"
 
 interface MobileMenuProps {
   isWalletConnected?: boolean
@@ -54,7 +54,9 @@ export function MobileMenu({ isWalletConnected = false }: MobileMenuProps) {
       <div className="flex flex-col gap-4 py-4 items-center">
         <div className="mb-4 flex items-center gap-3">
           {walletConnected && (
-            <NotificationIcon />
+            <div>
+              {/* <NotificationIcon /> */}
+            </div>
           )}
           <ConnectWalletButton />
         </div>

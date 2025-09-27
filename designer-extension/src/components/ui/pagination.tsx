@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState } from "react"
-import { Button } from "./button"
+// import { Button } from "./button.tsx"
 import { ChevronFirst, ChevronLast, ChevronLeft, ChevronRight } from "lucide-react"
 
 // Page jump input component
@@ -127,7 +127,7 @@ export default function NFTPagination({
     <div className="sticky bottom-0 w-full bg-neutral-900 py-3 px-4 rounded-t-lg border-t border-neutral-800 z-30">
       <div className="flex flex-col sm:flex-row justify-center items-center gap-3">
         <div className="flex items-center gap-1">
-          <Button
+          <div
             variant="outline"
             size="sm"
             onClick={() => onPageChange(1)}
@@ -137,8 +137,8 @@ export default function NFTPagination({
             style={{ borderRadius: "4px" }}
           >
             <ChevronFirst className="h-4 w-4" style={{ color: "#fffbeb" }} />
-          </Button>
-          <Button
+          </div>
+          <div
             variant="outline"
             size="sm"
             onClick={() => onPageChange(currentPage - 1)}
@@ -148,7 +148,7 @@ export default function NFTPagination({
             style={{ borderRadius: "4px" }}
           >
             <ChevronLeft className="h-4 w-4" style={{ color: "#fffbeb" }} />
-          </Button>
+          </div>
 
           <div className="hidden sm:flex items-center gap-1">
             {pageNumbers.map((page, index) => {
@@ -161,7 +161,7 @@ export default function NFTPagination({
               }
 
               return (
-                <Button
+                <div
                   key={`page-${page}`}
                   variant={currentPage === page ? "default" : "outline"}
                   size="sm"
@@ -174,12 +174,12 @@ export default function NFTPagination({
                   onClick={() => onPageChange(page as number)}
                 >
                   {page}
-                </Button>
+                </div>
               )
             })}
           </div>
 
-          <Button
+          <div
             variant="outline"
             size="sm"
             onClick={() => onPageChange(currentPage + 1)}
@@ -189,8 +189,8 @@ export default function NFTPagination({
             style={{ borderRadius: "4px" }}
           >
             <ChevronRight className="h-4 w-4" style={{ color: "#fffbeb" }} />
-          </Button>
-          <Button
+          </div>
+          <div
             variant="outline"
             size="sm"
             onClick={() => onPageChange(totalPages)}
@@ -200,7 +200,7 @@ export default function NFTPagination({
             style={{ borderRadius: "4px" }}
           >
             <ChevronLast className="h-4 w-4" style={{ color: "#fffbeb" }} />
-          </Button>
+          </div>
         </div>
 
         <div className="flex items-center gap-2">

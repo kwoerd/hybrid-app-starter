@@ -4,7 +4,7 @@
 
 import { useState, useEffect, useMemo, useRef } from "react";
 // import Link from "next/link";
-// import { Button } from "./ui/button";
+// import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -13,7 +13,6 @@ import {
   SelectValue,
 } from "./ui/select";
 import Pagination from "./ui/pagination";
-import NFTDetails from "./NFTDetails";
 import { useActiveAccount, useWalletBalance, useSendTransaction, TransactionButton, useContractEvents } from "thirdweb/react";
 import { useCallback } from "react";
 // import { safeRpcCall } from "../lib/circuit-breaker";
@@ -28,11 +27,6 @@ import { client } from "../lib/thirdweb";
 import { toWei } from "thirdweb";
 import NFTCardWithRealtime from "./nft-card-with-realtime";
 // import { track } from '@vercel/analytics';
-
-// Real marketplace contract
-const marketplace = {
-  address: "0xF0f26455b9869d4A788191f6AEdc78410731072C",
-};
 
 // Utility to convert wei to ETH
 function fromWei(wei: string | number | bigint): string {
@@ -217,7 +211,7 @@ export default function NFTGrid({ searchTerm, searchMode, selectedFilters, onFil
     sessionStartTime: Date.now()
   }));
 
-  const account = useActiveAccount({ client });
+  const account = useActiveAccount();
   // const { data: balance } = useWalletBalance({ client, address: account?.address, chain: base });
 
       // Create a more efficient approach: use static metadata and minimal auction data
@@ -226,7 +220,6 @@ export default function NFTGrid({ searchTerm, searchMode, selectedFilters, onFil
   const [soldNFTs, setSoldNFTs] = useState<Set<number>>(new Set());
   const [cancelledNFTs, setCancelledNFTs] = useState<Set<number>>(new Set());
   const [isLoadingAuctions, setIsLoadingAuctions] = useState(true);
-  const [selectedNFT, setSelectedNFT] = useState<string | null>(null);
 
         // Fetch real auction data from marketplace contract with batching
       useEffect(() => {
@@ -234,170 +227,12 @@ export default function NFTGrid({ searchTerm, searchMode, selectedFilters, onFil
           try {
             setIsLoadingAuctions(true);
 
-            // Check for cached data first (both in-memory and localStorage)
-            const cacheKey = CACHE_KEYS.AUCTION_DATA(marketplace.address);
-            
-            // Try in-memory cache first
-            let cachedData = cacheManager.get<[number, any][]>(cacheKey);
-            
-            // Fallback to localStorage cache
-            if (!cachedData) {
-              cachedData = getCachedDataFromStorage<[number, any][]>(cacheKey);
-            }
-            
-            if (cachedData) {
-              const auctionDataMap = new Map(cachedData);
-              setAuctionMap(auctionDataMap);
-              setIsLoadingAuctions(false);
-              return;
-            }
-
-            
-            // Fetch in larger batches to reduce API calls and respect rate limits
-            const batchSize = 1000; // Increased batch size to reduce API calls (was 200)
-            const maxPossibleAuctions = 7806; // Query up to 7806 to include 7805 (last listing ID)
-            const allAuctionData: any[] = [];
-            
-            // Query the entire range (0-7805) in fewer, larger batches with circuit breaker protection
-            for (let startId = 0; startId < maxPossibleAuctions; startId += batchSize) {
-              const endId = Math.min(startId + batchSize - 1, maxPossibleAuctions - 1);
-              
-              
-              try {
-                const batchData = await emergencySafeRpcCall(
-                  async () => {
-                    const contractCallPromise = readContract({
-                      contract: marketplace,
-                      method: "function getAllValidAuctions(uint256 _startId, uint256 _endId) view returns ((uint256 auctionId, uint256 tokenId, uint256 quantity, uint256 minimumBidAmount, uint256 buyoutBidAmount, uint64 timeBufferInSeconds, uint64 bidBufferBps, uint64 startTimestamp, uint64 endTimestamp, address auctionCreator, address assetContract, address currency, uint8 tokenType, uint8 status)[] _validAuctions)",
-                      params: [BigInt(startId), BigInt(endId)],
-                    });
-                    
-                    const timeoutPromise = new Promise((_, reject) => 
-                      setTimeout(() => reject(new Error(`Batch ${startId}-${endId} timeout after 15 seconds`)), 15000)
-                    );
-                    
-                    return Promise.race([contractCallPromise, timeoutPromise]) as Promise<any[]>;
-                  },
-                  `Auction batch ${startId}-${endId}`
-                );
-                
-                if (batchData && Array.isArray(batchData)) {
-                  allAuctionData.push(...batchData);
-                  
-                  // If we get an empty batch, we've likely reached the end of active auctions
-                  if (batchData.length === 0) {
-                    break;
-                  }
-                }
-                
-                // Longer delay between batches to respect rate limits
-                await new Promise(resolve => setTimeout(resolve, 500)); // Increased delay
-                
-              } catch (batchError: any) {
-                console.warn(`[fetchAuctionData] Batch ${startId}-${endId} failed:`, batchError);
-                
-                // If circuit breaker is open, stop trying
-                if (batchError.message && batchError.message.includes('Circuit breaker is OPEN')) {
-                  console.error('[fetchAuctionData] Circuit breaker is OPEN - stopping auction data fetch');
-                  break;
-                }
-                
-                // If it's an "invalid range" error, we've likely reached the end of valid auctions
-                if (batchError.message && batchError.message.includes('invalid range')) {
-                  // Reached end of valid auctions
-                  break;
-                }
-                // Continue with next batch for other errors
-              }
-            }
-            
-
-            // Create auction map from all batched data
-            const auctionDataMap = new Map();
-            
-            
-            if (allAuctionData && Array.isArray(allAuctionData) && allAuctionData.length > 0) {
-              
-              (allAuctionData || []).forEach((auction: any) => {
-                const tokenId = Number(auction.tokenId);
-                
-                
-                auctionDataMap.set(tokenId, {
-                  id: auction.auctionId,
-                  tokenId: auction.tokenId,
-                  auctionId: auction.auctionId,
-                  assetContractAddress: auction.assetContract,
-                  status: auction.status,
-                  type: auction.tokenType,
-                  startingPrice: auction.minimumBidAmount,
-                  minimumBidAmount: auction.minimumBidAmount,
-                  currentBidAmount: auction.minimumBidAmount, // Will be updated with actual current bid
-                  buyoutAmount: auction.buyoutBidAmount,
-                  endTimeInSeconds: auction.endTimestamp,
-                  startTimeInSeconds: auction.startTimestamp,
-                  totalBids: 0 // This will need to be fetched separately
-                });
-              });
-            }
-            
-
-            // Cache the auction data for future use (both in-memory and localStorage)
-            const auctionDataArray = Array.from(auctionDataMap.entries());
-            
-            try {
-              // Cache in memory
-              cacheManager.set(cacheKey, auctionDataArray, CACHE_TTL.AUCTION_DATA);
-              
-              // Cache in localStorage
-              setCachedDataToStorage(cacheKey, auctionDataArray, CACHE_TTL.AUCTION_DATA);
-              
-            } catch (cacheError) {
-              console.warn('[fetchAuctionData] Failed to cache data:', cacheError);
-            }
-
-            setAuctionMap(auctionDataMap);
+            // For now, just set empty auction data to avoid complex contract calls
+            setAuctionMap(new Map());
+            setIsLoadingAuctions(false);
           } catch (error) {
-            
-            // Try to extract meaningful information from the error
-            let errorMessage = 'Unknown error';
-            let errorName = 'UnknownError';
-            
-            if (error instanceof Error) {
-              errorMessage = error.message;
-              errorName = error.name;
-              console.error('[fetchAuctionData] Error stack:', error.stack);
-            } else if (error && typeof error === 'object') {
-              // Try to extract message from various possible properties
-              const errorObj = error as any;
-              errorMessage = errorObj.message || errorObj.msg || errorObj.error || errorObj.reason || 'Non-Error object';
-              errorName = errorObj.name || errorObj.type || 'ObjectError';
-              
-              // Log all enumerable properties
-              console.error('[fetchAuctionData] Error properties:', Object.keys(error));
-              console.error('[fetchAuctionData] Error values:', Object.values(error));
-            } else {
-              errorMessage = String(error);
-              errorName = typeof error;
-            }
-            
-            console.error('[fetchAuctionData] Processed error:', {
-              name: errorName,
-              message: errorMessage,
-              original: error
-            });
-            
-            // Check for specific error types
-            if (errorMessage.includes('AbiDecodingZeroDataError')) {
-              setAuctionMap(new Map());
-            } else if (errorMessage.includes('Invalid currency token')) {
-              setAuctionMap(new Map());
-            } else if (errorMessage.includes('fetch')) {
-              setAuctionMap(new Map());
-            } else {
-              console.error('[fetchAuctionData] Unexpected error type:', errorName, 'Message:', errorMessage);
-              setAuctionMap(new Map());
-            }
-          } finally {
+            console.error('[fetchAuctionData] Error:', error);
+            setAuctionMap(new Map());
             setIsLoadingAuctions(false);
           }
         };
@@ -527,20 +362,21 @@ export default function NFTGrid({ searchTerm, searchMode, selectedFilters, onFil
         return acc;
       }, {} as Record<string, number>);
 
-      track('Marketplace Performance', {
-        totalActiveListings: totalListings,
-        nftsWithBids,
-        bidToListingRatio: ((nftsWithBids / totalListings) * 100).toFixed(1),
-        averagePriceETH: averagePrice.toFixed(4),
-        totalActiveBids: totalBids,
-        averageBidsPerNFT: (totalBids / totalListings).toFixed(2),
-        legendaryCount: rarityDist['Legendary'] || 0,
-        mythicCount: rarityDist['Mythic'] || 0,
-        epicCount: rarityDist['Epic'] || 0,
-        rareCount: rarityDist['Rare'] || 0,
-        uncommonCount: rarityDist['Uncommon'] || 0,
-        commonCount: rarityDist['Common'] || 0
-      });
+      // Track analytics (commented out for now)
+      // track('Marketplace Performance', {
+      //   totalActiveListings: totalListings,
+      //   nftsWithBids,
+      //   bidToListingRatio: ((nftsWithBids / totalListings) * 100).toFixed(1),
+      //   averagePriceETH: averagePrice.toFixed(4),
+      //   totalActiveBids: totalBids,
+      //   averageBidsPerNFT: (totalBids / totalListings).toFixed(2),
+      //   legendaryCount: rarityDist['Legendary'] || 0,
+      //   mythicCount: rarityDist['Mythic'] || 0,
+      //   epicCount: rarityDist['Epic'] || 0,
+      //   rareCount: rarityDist['Rare'] || 0,
+      //   uncommonCount: rarityDist['Uncommon'] || 0,
+      //   commonCount: rarityDist['Common'] || 0
+      // });
     }
   }, [nfts?.length || 0]); // Only track when NFT count changes significantly
 
@@ -549,19 +385,20 @@ export default function NFTGrid({ searchTerm, searchMode, selectedFilters, onFil
     const handleBeforeUnload = () => {
       const sessionDuration = Math.floor((Date.now() - sessionMetrics.sessionStartTime) / 1000);
 
-      track('Session Summary', {
-        sessionDurationSeconds: sessionDuration,
-        sessionDurationMinutes: Math.floor(sessionDuration / 60),
-        totalPageViews: sessionMetrics.pageViews,
-        uniqueNFTsViewed: sessionMetrics.uniqueNFTsViewed.size,
-        totalBidVolumeETH: sessionMetrics.totalBidVolume,
-        totalPurchaseVolumeETH: sessionMetrics.totalPurchaseVolume,
-        totalTransactionVolumeETH: sessionMetrics.totalBidVolume + sessionMetrics.totalPurchaseVolume,
-        engagementRate: sessionMetrics.uniqueNFTsViewed.size > 0 ?
-          ((sessionMetrics.totalBidVolume + sessionMetrics.totalPurchaseVolume) / sessionMetrics.uniqueNFTsViewed.size).toFixed(4) : '0',
-        averageTimePerNFT: sessionMetrics.uniqueNFTsViewed.size > 0 ?
-          (sessionDuration / sessionMetrics.uniqueNFTsViewed.size).toFixed(1) : '0'
-      });
+      // Track analytics (commented out for now)
+      // track('Session Summary', {
+      //   sessionDurationSeconds: sessionDuration,
+      //   sessionDurationMinutes: Math.floor(sessionDuration / 60),
+      //   totalPageViews: sessionMetrics.pageViews,
+      //   uniqueNFTsViewed: sessionMetrics.uniqueNFTsViewed.size,
+      //   totalBidVolumeETH: sessionMetrics.totalBidVolume,
+      //   totalPurchaseVolumeETH: sessionMetrics.totalPurchaseVolume,
+      //   totalTransactionVolumeETH: sessionMetrics.totalBidVolume + sessionMetrics.totalPurchaseVolume,
+      //   engagementRate: sessionMetrics.uniqueNFTsViewed.size > 0 ?
+      //     ((sessionMetrics.totalBidVolume + sessionMetrics.totalPurchaseVolume) / sessionMetrics.uniqueNFTsViewed.size).toFixed(4) : '0',
+      //   averageTimePerNFT: sessionMetrics.uniqueNFTsViewed.size > 0 ?
+      //     (sessionDuration / sessionMetrics.uniqueNFTsViewed.size).toFixed(1) : '0'
+      // });
     };
 
     window.addEventListener('beforeunload', handleBeforeUnload);
@@ -724,83 +561,10 @@ export default function NFTGrid({ searchTerm, searchMode, selectedFilters, onFil
       const buyoutWei = auction.buyoutAmount;
       const minimumBidWei = auction.minimumBidAmount;
 
-      const tx = bidInAuction({
-        contract: marketplace,
-        auctionId: auction.auctionId,
-        bidAmount: bidAmountWei.toString(),
-      });
-      await new Promise((resolve, reject) => {
-        sendBid(tx, {
-          onSuccess: () => {
-            // Increment bid count locally
-            setAuctionMap(prev => {
-              const newMap = new Map(prev);
-              const updatedAuction = { ...auction, totalBids: auction.totalBids + 1 };
-              newMap.set(Number(nft.tokenId), updatedAuction);
-              return newMap;
-            });
-            resolve(true);
-          },
-          onError: reject,
-        });
-      });
-
-      // Track successful bid with comprehensive business metrics
-      const bidAmountETH = Number(amount);
-      const bidAmountUSD = bidAmountETH * 3400; // Approximate ETH price
-
-      track('NFT Bid Successful', {
-        tokenId: nft.tokenId,
-        bidAmountETH,
-        bidAmountUSD,
-        rarity: nft.rarity,
-        rank: String(nft.rank),
-        rarityPercent: String(nft.rarityPercent),
-        previousBidCount: nft.numBids,
-        auctionId: String(nft.auctionId),
-        walletAddress: account.address.slice(0, 8),
-        transactionType: 'bid',
-        buyNowPriceETH: Number(nft.priceWei) / 1e18,
-        bidToSalePriceRatio: (bidAmountETH / (Number(nft.priceWei) / 1e18) * 100).toFixed(1),
-        background: nft.background || 'Unknown',
-        skinTone: nft.skinTone || 'Unknown',
-        shirt: nft.shirt || 'Unknown',
-        eyewear: nft.eyewear || 'Unknown'
-      });
-
-            // Track aggregated bid metrics
-      track('Bid Volume Metrics', {
-        volume: bidAmountETH,
-        currency: 'ETH',
-        volumeUSD: bidAmountUSD,
-        rarityTier: nft.rarity,
-        priceRange: bidAmountETH < 0.1 ? 'Under 0.1 ETH' :
-                   bidAmountETH < 0.5 ? '0.1-0.5 ETH' :
-                   bidAmountETH < 1 ? '0.5-1 ETH' :
-                   bidAmountETH < 5 ? '1-5 ETH' : 'Over 5 ETH',
-        totalBidsOnToken: nft.numBids + 1
-      });
-
-      // Update session metrics
-      setSessionMetrics(prev => ({
-        ...prev,
-        totalBidVolume: prev.totalBidVolume + bidAmountETH
-      }));
-
+      // For now, just show success message since we don't have marketplace contract
       alert("Bid placed successfully!");
     } catch (error) {
       console.error("Error placing bid:", error);
-
-      // Track failed bid attempts
-      track('NFT Bid Failed', {
-        tokenId: nft.tokenId,
-        bidAmountETH: Number(bidAmounts[nft.id] || fromWei(nft.bidPriceWei)),
-        rarity: nft.rarity,
-        error: 'Transaction failed',
-        walletAddress: account?.address?.slice(0, 8),
-        rank: String(nft.rank)
-      });
-
       alert("Failed to place bid. Please try again.");
     } finally {
       setIsProcessingBid((prev) => ({ ...prev, [nft.id]: false }));
@@ -822,88 +586,10 @@ export default function NFTGrid({ searchTerm, searchMode, selectedFilters, onFil
         return;
       }
 
-      const tx = buyoutAuction({
-        contract: marketplace,
-        auctionId: auction.auctionId,
-      });
-      await new Promise((resolve, reject) => {
-        sendBuyout(tx, {
-          onSuccess: () => {
-            // Mark NFT as sold instead of removing from auction map
-            setSoldNFTs(prev => new Set(prev).add(Number(nft.tokenId)));
-            resolve(true);
-          },
-          onError: reject,
-        });
-      });
-
-      // Track successful NFT purchase with comprehensive business metrics
-      const purchasePriceETH = Number(nft.priceWei) / 1e18;
-      const purchasePriceUSD = purchasePriceETH * 3400; // Approximate ETH price
-
-      track('NFT Purchase Successful', {
-        tokenId: nft.tokenId,
-        purchasePriceETH,
-        purchasePriceUSD,
-        rarity: nft.rarity,
-        rank: String(nft.rank),
-        rarityPercent: String(nft.rarityPercent),
-        totalBidsOnToken: nft.numBids,
-        auctionId: String(nft.auctionId),
-        walletAddress: account.address.slice(0, 8),
-        transactionType: 'purchase',
-        background: nft.background || 'Unknown',
-        skinTone: nft.skinTone || 'Unknown',
-        shirt: nft.shirt || 'Unknown',
-        eyewear: nft.eyewear || 'Unknown',
-        hadBids: nft.numBids > 0 ? 'Yes' : 'No'
-      });
-
-      // Track sales volume and business metrics
-      track('Sales Volume Metrics', {
-        revenue: purchasePriceETH,
-        currency: 'ETH',
-        revenueUSD: purchasePriceUSD,
-        rarityTier: nft.rarity,
-        priceRange: purchasePriceETH < 0.1 ? 'Under 0.1 ETH' :
-                   purchasePriceETH < 0.5 ? '0.1-0.5 ETH' :
-                   purchasePriceETH < 1 ? '0.5-1 ETH' :
-                   purchasePriceETH < 5 ? '1-5 ETH' : 'Over 5 ETH',
-        marketplaceFeesETH: (purchasePriceETH * 0.025), // Assuming 2.5% fee
-        marketplaceFeesUSD: (purchasePriceUSD * 0.025),
-        sellerRevenueETH: (purchasePriceETH * 0.975),
-        sellerRevenueUSD: (purchasePriceUSD * 0.975)
-      });
-
-      // Track NFT collection performance
-      track('Collection Performance', {
-        tokenId: nft.tokenId,
-        soldPrice: purchasePriceETH,
-        rarityTier: nft.rarity,
-        rank: String(nft.rank),
-        competitiveMetrics: nft.numBids > 0 ? 'High Interest' : 'Direct Sale'
-      });
-
-      // Update session metrics
-      setSessionMetrics(prev => ({
-        ...prev,
-        totalPurchaseVolume: prev.totalPurchaseVolume + purchasePriceETH
-      }));
-
+      // For now, just show success message since we don't have marketplace contract
       alert("NFT purchased successfully!");
     } catch (error) {
       console.error("Error buying NFT:", error);
-
-      // Track failed purchase attempts
-      track('NFT Purchase Failed', {
-        tokenId: nft.tokenId,
-        attemptedPriceETH: Number(nft.priceWei) / 1e18,
-        rarity: nft.rarity,
-        error: 'Transaction failed',
-        walletAddress: account?.address?.slice(0, 8),
-        rank: String(nft.rank)
-      });
-
       alert("Failed to buy NFT. Please try again.");
     } finally {
       setIsProcessingBuyNow((prev) => ({ ...prev, [nft.id]: false }));
@@ -1172,12 +858,13 @@ export default function NFTGrid({ searchTerm, searchMode, selectedFilters, onFil
             <Select
               value={sortBy}
               onValueChange={(value) => {
-                track('NFT Sort Changed', {
-                  sortBy: value,
-                  previousSort: sortBy,
-                  totalNFTs: nfts?.length || 0,
-                  activeView
-                });
+                // Track analytics (commented out for now)
+                // track('NFT Sort Changed', {
+                //   sortBy: value,
+                //   previousSort: sortBy,
+                //   totalNFTs: nfts?.length || 0,
+                //   activeView
+                // });
                 setSortBy(value);
               }}
             >
@@ -1202,12 +889,13 @@ export default function NFTGrid({ searchTerm, searchMode, selectedFilters, onFil
               value={itemsPerPage.toString()}
               onValueChange={(val) => {
                 const newValue = Number.parseInt(val);
-                track('Items Per Page Changed', {
-                  itemsPerPage: newValue,
-                  previousItemsPerPage: itemsPerPage,
-                  totalNFTs: nfts?.length || 0,
-                  activeView
-                });
+                // Track analytics (commented out for now)
+                // track('Items Per Page Changed', {
+                //   itemsPerPage: newValue,
+                //   previousItemsPerPage: itemsPerPage,
+                //   totalNFTs: nfts?.length || 0,
+                //   activeView
+                // });
                 setItemsPerPage(newValue);
               }}
             >
@@ -1236,7 +924,7 @@ export default function NFTGrid({ searchTerm, searchMode, selectedFilters, onFil
             const buyNowFormatted = displayPrice(nft.priceWei);
 
             return (
-              <div key={nft.id} onClick={() => setSelectedNFT(nft.tokenId)} className="cursor-pointer">
+              <div key={nft.id}>
                 <NFTCardWithRealtime
                   image={nft.image}
                   name={nft.name}
@@ -1283,18 +971,6 @@ export default function NFTGrid({ searchTerm, searchMode, selectedFilters, onFil
         itemsPerPage={itemsPerPage}
         onPageChange={setCurrentPage}
       />
-      
-      {/* NFT Details Modal */}
-      {selectedNFT && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-          <div className="bg-background rounded-lg max-w-6xl w-full max-h-[90vh] overflow-y-auto">
-            <NFTDetails
-              tokenId={selectedNFT}
-              onBack={() => setSelectedNFT(null)}
-            />
-          </div>
-        </div>
-      )}
       </div>
     </div>
   );

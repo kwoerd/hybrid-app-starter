@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { ThemeProvider } from "./components/theme-provider";
-import { NFTMarketplaceMain } from "./components/TestMarketplace";
+import NFTsPage from "./components/TestMarketplace";
 
 function App() {
   useEffect(() => {
@@ -18,7 +18,7 @@ function App() {
 
   // For development, show the NFT marketplace
   if (import.meta.env.DEV) {
-    return <NFTMarketplaceMain />;
+    return <NFTsPage />;
   }
 
   return (

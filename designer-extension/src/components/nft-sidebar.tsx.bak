@@ -8,9 +8,8 @@ import { Button } from "./ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select"
 // import { track } from '@vercel/analytics'; // Commented out - package not installed
 
-// Analytics tracking
+// Stub analytics function to prevent errors
 const track = (...args: any[]) => {
-  console.log('Analytics:', args);
 };
 
 // Create a context for filter reset functionality
@@ -598,7 +597,7 @@ export default function NFTSidebar({ searchTerm, setSearchTerm, searchMode, setS
             <h4 className="text-[11px] font-[JetBrains_Mono] text-neutral-400 mb-2">Marketplace</h4>
             <div className="flex gap-2">
               <button
-                onClick={() => window.open(`https://basescan.org/address/${process.env.NEXT_PUBLIC_MARKETPLACE_ADDRESS || '0xYourMarketplaceAddress'}`, '_blank')}
+                onClick={() => window.open(`https://basescan.org/address/${import.meta.env.VITE_MARKETPLACE_ADDRESS || '0xYourMarketplaceAddress'}`, '_blank')}
                 className="flex-1 bg-neutral-800 hover:bg-neutral-700 text-[11px] px-2 py-1.5 rounded transition-colors border border-neutral-600 flex items-center justify-center gap-1"
                 style={{ color: "#fffbeb" }}
               >
@@ -606,7 +605,7 @@ export default function NFTSidebar({ searchTerm, setSearchTerm, searchMode, setS
                 <ExternalLink className="h-3 w-3" style={{ color: "#fffbeb" }} />
               </button>
               <button
-                onClick={() => window.open(`https://base.blockscout.com/address/${process.env.NEXT_PUBLIC_MARKETPLACE_ADDRESS || '0xYourMarketplaceAddress'}`, '_blank')}
+                onClick={() => window.open(`https://base.blockscout.com/address/${import.meta.env.VITE_MARKETPLACE_ADDRESS || '0xYourMarketplaceAddress'}`, '_blank')}
                 className="flex-1 bg-neutral-800 hover:bg-neutral-700 text-[11px] px-2 py-1.5 rounded transition-colors border border-neutral-600 flex items-center justify-center gap-1"
                 style={{ color: "#fffbeb" }}
               >
@@ -620,7 +619,7 @@ export default function NFTSidebar({ searchTerm, setSearchTerm, searchMode, setS
             <h4 className="text-[11px] font-[JetBrains_Mono] text-neutral-400 mb-2">NFT Contract</h4>
             <div className="flex gap-2">
               <button
-                onClick={() => window.open(`https://basescan.org/address/${process.env.NEXT_PUBLIC_NFT_COLLECTION_ADDRESS || '0xYourNFTCollectionAddress'}`, '_blank')}
+                onClick={() => window.open(`https://basescan.org/address/${import.meta.env.VITE_NFT_COLLECTION_ADDRESS || '0xYourNFTCollectionAddress'}`, '_blank')}
                 className="flex-1 bg-neutral-800 hover:bg-neutral-700 text-[11px] px-2 py-1.5 rounded transition-colors border border-neutral-600 flex items-center justify-center gap-1"
                 style={{ color: "#fffbeb" }}
               >
@@ -628,7 +627,7 @@ export default function NFTSidebar({ searchTerm, setSearchTerm, searchMode, setS
                 <ExternalLink className="h-3 w-3" style={{ color: "#fffbeb" }} />
               </button>
               <button
-                onClick={() => window.open(`https://base.blockscout.com/address/${process.env.NEXT_PUBLIC_NFT_COLLECTION_ADDRESS || '0xYourNFTCollectionAddress'}`, '_blank')}
+                onClick={() => window.open(`https://base.blockscout.com/address/${import.meta.env.VITE_NFT_COLLECTION_ADDRESS || '0xYourNFTCollectionAddress'}`, '_blank')}
                 className="flex-1 bg-neutral-800 hover:bg-neutral-700 text-[11px] px-2 py-1.5 rounded transition-colors border border-neutral-600 flex items-center justify-center gap-1"
                 style={{ color: "#fffbeb" }}
               >
@@ -730,7 +729,7 @@ export default function NFTSidebar({ searchTerm, setSearchTerm, searchMode, setS
           title="Rarity Tiers"
           color="orange"
           icon={
-            <Image
+            <img
               src="/icons/rarity-tier-orange.svg"
               alt="Rarity Tiers"
               width={18}
@@ -748,7 +747,7 @@ export default function NFTSidebar({ searchTerm, setSearchTerm, searchMode, setS
           color="blue"
           twoColumns={false}
           icon={
-            <Image
+            <img
               src="/icons/background-blue.svg"
               alt="Background"
               width={18}
@@ -766,9 +765,7 @@ export default function NFTSidebar({ searchTerm, setSearchTerm, searchMode, setS
           title="Skin Tone"
           color="amber"
           twoColumns={false}
-          icon={
-            <Image src="/icons/skin-tone-yellow.svg" alt="Skin Tone" width={18} height={18} className="text-amber-400" sizes="18px" />
-          }
+          icon={<img src="/icons/skin-tone-yellow.svg" alt="Skin Tone" width={18} height={18} className="text-amber-400" />}
           options={traitCounts["skinTone"] ? Object.keys(traitCounts["skinTone"]).sort().map(value => ({ value, display: value })) : []}
           selected={selectedFilters.skinTone || []}
           onChange={arr => setSelectedFilters((f: any) => ({ ...f, skinTone: arr }))}
@@ -779,7 +776,7 @@ export default function NFTSidebar({ searchTerm, setSearchTerm, searchMode, setS
           title="Shirt"
           color="red"
           twoColumns={false}
-          icon={<Image src="/icons/shirt-red.svg" alt="Shirt" width={18} height={18} className="text-red-400" sizes="18px" />}
+          icon={<img src="/icons/shirt-red.svg" alt="Shirt" width={18} height={18} className="text-red-400" />}
           options={traitCounts["shirt"] ? Object.keys(traitCounts["shirt"]).sort().map(value => ({ value, display: value })) : []}
           selected={selectedFilters.shirt || []}
           onChange={arr => setSelectedFilters((f: any) => ({ ...f, shirt: arr }))}
@@ -790,7 +787,7 @@ export default function NFTSidebar({ searchTerm, setSearchTerm, searchMode, setS
           title="Hair"
           color="green"
           twoColumns={false}
-          icon={<Image src="/icons/hair-green.svg" alt="Hair" width={18} height={18} className="text-green-400" sizes="18px" />}
+          icon={<img src="/icons/hair-green.svg" alt="Hair" width={18} height={18} className="text-green-400" />}
           subcategories={[
             {
               name: "Banana Clip",
@@ -834,7 +831,7 @@ export default function NFTSidebar({ searchTerm, setSearchTerm, searchMode, setS
           title="Eyewear"
           color="cyan"
           twoColumns={false}
-          icon={<Image src="/icons/eyewear-blue.svg" alt="Eyewear" width={18} height={18} className="text-cyan-400" sizes="18px" />}
+          icon={<img src="/icons/eyewear-blue.svg" alt="Eyewear" width={18} height={18} className="text-cyan-400" />}
           options={[
             // Values match the cleaned combined_metadata.json (no "Eyewear" prefix)
             "Eyeglasses",
@@ -854,7 +851,7 @@ export default function NFTSidebar({ searchTerm, setSearchTerm, searchMode, setS
           color="purple"
           twoColumns={false}
           icon={
-            <Image src="/icons/headwear-purple.svg" alt="Headwear" width={18} height={18} className="text-purple-400" sizes="18px" />
+            <img src="/icons/headwear-purple.svg" alt="Headwear" width={18} height={18} className="text-purple-400" />
           }
           subcategories={[
             {
